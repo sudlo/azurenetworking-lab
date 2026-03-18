@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azure Networking Lab — End-to-End GUI Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --azure-blue: #0078d4;
+    --azure-dark: #003f73;
+    --azure-light: #e6f2fb;
+    --accent-cyan: #00b4d8;
+    --accent-green: #00c896;
+    --accent-orange: #ff8c42;
+    --accent-red: #e63946;
+    --bg-dark: #0a0e1a;
+    --bg-card: #111827;
+    --bg-card2: #1a2235;
+    --text-primary: #f0f4ff;
+    --text-secondary: #8899bb;
+    --text-muted: #4a5568;
+    --border: #1e2d47;
+    --tag-bg: #0d1f35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─────────────────────────────────────────── */
+  header {
+    background: linear-gradient(135deg, #0a0e1a 0%, #0d1f35 50%, #091628 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .logo-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--azure-blue), var(--accent-cyan));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: white;
+  }
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+  .logo-text span { color: var(--azure-blue); }
+  .header-meta {
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    border: 1px solid;
+    letter-spacing: 0.05em;
+  }
+  .badge-blue { color: var(--accent-cyan); border-color: var(--accent-cyan); background: rgba(0,180,216,0.07); }
+  .badge-green { color: var(--accent-green); border-color: var(--accent-green); background: rgba(0,200,150,0.07); }
+  .badge-orange { color: var(--accent-orange); border-color: var(--accent-orange); background: rgba(255,140,66,0.07); }
+
+  /* ─── HERO ────────────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #091628 60%, #0d1f35 100%);
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,120,212,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #f0f4ff 0%, var(--accent-cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin: 0 auto 2rem;
+    font-weight: 300;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+  }
+  .hero-stat {
+    text-align: center;
+  }
+  .hero-stat .num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    color: var(--azure-blue);
+  }
+  .hero-stat .lbl {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── ARCHITECTURE OVERVIEW ──────────────────────────── */
+  .arch-section {
+    max-width: 1400px;
+    margin: 3rem auto;
+    padding: 0 2rem;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+  .section-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+  .arch-diagram {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+  }
+  .arch-diagram svg { display: block; margin: 0 auto; }
+
+  /* ─── PROGRESS TRACK ─────────────────────────────────── */
+  .progress-track {
+    max-width: 1400px;
+    margin: 0 auto 3rem;
+    padding: 0 2rem;
+  }
+  .track-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .track-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: border-color 0.2s;
+    cursor: default;
+  }
+  .track-item:hover { border-color: var(--azure-blue); }
+  .track-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--azure-blue);
+    background: rgba(0,120,212,0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .track-name {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  /* ─── MAIN CONTENT ───────────────────────────────────── */
+  .labs-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+
+  /* ─── MODULE ─────────────────────────────────────────── */
+  .module {
+    margin-bottom: 3rem;
+  }
+  .module-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .module-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .mod-1 .module-badge { background: rgba(0,120,212,0.15); color: #5ab4f0; border: 1px solid rgba(90,180,240,0.3); }
+  .mod-2 .module-badge { background: rgba(0,200,150,0.12); color: #00c896; border: 1px solid rgba(0,200,150,0.3); }
+  .mod-3 .module-badge { background: rgba(255,140,66,0.12); color: var(--accent-orange); border: 1px solid rgba(255,140,66,0.3); }
+  .mod-4 .module-badge { background: rgba(168,85,247,0.12); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+  .mod-5 .module-badge { background: rgba(230,57,70,0.12); color: #f87171; border: 1px solid rgba(230,57,70,0.3); }
+  .mod-6 .module-badge { background: rgba(234,179,8,0.12); color: #fbbf24; border: 1px solid rgba(234,179,8,0.3); }
+  .module-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
+  }
+  .module-time {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    background: var(--tag-bg);
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+  }
+
+  /* ─── LAB CARD ───────────────────────────────────────── */
+  .lab-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .lab-card:hover {
+    border-color: var(--azure-blue);
+    box-shadow: 0 0 20px rgba(0,120,212,0.08);
+  }
+  .lab-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .lab-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--azure-blue);
+    background: rgba(0,120,212,0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    min-width: 2.8rem;
+    text-align: center;
+  }
+  .lab-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    flex: 1;
+  }
+  .lab-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    background: var(--tag-bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    letter-spacing: 0.03em;
+  }
+  .lab-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .expand-btn {
+    color: var(--text-muted);
+    font-size: 1rem;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .lab-card.open .expand-btn { transform: rotate(180deg); }
+
+  .lab-body {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 1.5rem;
+    background: var(--bg-card2);
+  }
+  .lab-card.open .lab-body { display: block; }
+
+  /* ─── LAB BODY CONTENT ───────────────────────────────── */
+  .objective-box {
+    background: rgba(0,120,212,0.07);
+    border: 1px solid rgba(0,120,212,0.2);
+    border-left: 3px solid var(--azure-blue);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+    color: #a0c4e8;
+  }
+  .objective-box strong {
+    display: block;
+    color: var(--accent-cyan);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+
+  .prereq-box {
+    background: rgba(255,140,66,0.05);
+    border: 1px solid rgba(255,140,66,0.2);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.82rem;
+    color: #f0a070;
+  }
+  .prereq-box strong {
+    color: var(--accent-orange);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+  }
+
+  .steps-heading {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+  }
+
+  .step-list { list-style: none; }
+  .step-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    align-items: flex-start;
+  }
+  .step-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--bg-dark);
+    background: var(--accent-cyan);
+    min-width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .step-content { flex: 1; }
+  .step-content strong {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+    color: var(--text-primary);
+  }
+  .step-content p {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .nav-path {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    background: rgba(0,120,212,0.08);
+    border: 1px solid rgba(0,120,212,0.2);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    color: #7ecbf7;
+    display: inline-block;
+    margin: 0.3rem 0;
+    line-height: 1.5;
+  }
+  .nav-path .arrow { color: var(--text-muted); margin: 0 0.3rem; }
+
+  .tip-box {
+    background: rgba(0,200,150,0.05);
+    border: 1px solid rgba(0,200,150,0.2);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #70d4b0;
+  }
+  .tip-box::before {
+    content: '💡 TIP  ';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--accent-green);
+    letter-spacing: 0.06em;
+  }
+
+  .warn-box {
+    background: rgba(230,57,70,0.05);
+    border: 1px solid rgba(230,57,70,0.2);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #f4a0a0;
+  }
+  .warn-box::before {
+    content: '⚠️  NOTE  ';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--accent-red);
+    letter-spacing: 0.06em;
+  }
+
+  .verify-box {
+    background: rgba(168,85,247,0.05);
+    border: 1px solid rgba(168,85,247,0.2);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-top: 1.25rem;
+    font-size: 0.82rem;
+    color: #d4b0f7;
+  }
+  .verify-box strong {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: #c084fc;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+
+  .config-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin: 1rem 0;
+  }
+  .config-table th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    background: var(--tag-bg);
+  }
+  .config-table td {
+    padding: 0.5rem 0.75rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(30,45,71,0.5);
+    vertical-align: top;
+  }
+  .config-table td code {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent-cyan);
+    font-size: 0.75rem;
+  }
+
+  /* ─── FOOTER ─────────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  footer a { color: var(--azure-blue); text-decoration: none; }
+
+  /* ─── COLLAPSIBLE LOGIC ──────────────────────────────── */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 2rem; }
+    .hero-stats { gap: 1.5rem; }
+    .module-time { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo-box">
+      <div class="logo-icon">AZ</div>
+      <div class="logo-text"><span>Azure</span> Networking Lab</div>
+    </div>
+    <div class="header-meta">
+      <span class="badge badge-blue">GUI ONLY</span>
+      <span class="badge badge-green">AZ-700 ALIGNED</span>
+      <span class="badge badge-orange">BEGINNER → ADVANCED</span>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">■ END-TO-END LAB GUIDE · AZURE PORTAL</div>
+  <h1>Azure Networking<br>Mastery Lab</h1>
+  <p>A hands-on, GUI-only journey from virtual networks to Hub & Spoke architecture, private endpoints, VPN, and beyond — no scripting required.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">6</div><div class="lbl">Modules</div></div>
+    <div class="hero-stat"><div class="num">22</div><div class="lbl">Lab Exercises</div></div>
+    <div class="hero-stat"><div class="num">~8h</div><div class="lbl">Total Time</div></div>
+    <div class="hero-stat"><div class="num">100%</div><div class="lbl">Portal GUI</div></div>
+  </div>
+</div>
+
+<!-- ARCHITECTURE DIAGRAM -->
+<div class="arch-section">
+  <div class="section-title">Target Architecture</div>
+  <div class="section-subtitle">What you will build across all 6 modules — a production-grade Hub & Spoke topology</div>
+  <div class="arch-diagram">
+    <svg viewBox="0 0 900 480" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="6" refX="4" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#0078d4"/>
+        </marker>
+        <marker id="arr2" markerWidth="8" markerHeight="6" refX="4" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#4a5568"/>
+        </marker>
+      </defs>
+
+      <!-- Background -->
+      <rect width="900" height="480" fill="#111827" rx="12"/>
+      
+      <!-- Internet / On-prem region -->
+      <rect x="20" y="30" width="140" height="60" rx="8" fill="#0d1f35" stroke="#1e2d47"/>
+      <text x="90" y="57" font-size="9" fill="#8899bb" text-anchor="middle">INTERNET</text>
+      <text x="90" y="72" font-size="8" fill="#4a5568" text-anchor="middle">Users / On-Prem</text>
+
+      <!-- Front Door -->
+      <rect x="200" y="30" width="110" height="60" rx="8" fill="#0d1f35" stroke="#0078d4" stroke-width="1.5"/>
+      <text x="255" y="55" font-size="8" fill="#5ab4f0" text-anchor="middle">AZURE FRONT</text>
+      <text x="255" y="67" font-size="8" fill="#5ab4f0" text-anchor="middle">DOOR / WAF</text>
+      <text x="255" y="80" font-size="7" fill="#4a5568" text-anchor="middle">MODULE 5</text>
+
+      <!-- VPN Gateway -->
+      <rect x="340" y="30" width="100" height="60" rx="8" fill="#0d1f35" stroke="#00c896" stroke-width="1.5"/>
+      <text x="390" y="56" font-size="8" fill="#00c896" text-anchor="middle">VPN GATEWAY</text>
+      <text x="390" y="68" font-size="8" fill="#00c896" text-anchor="middle">P2S / S2S</text>
+      <text x="390" y="80" font-size="7" fill="#4a5568" text-anchor="middle">MODULE 6</text>
+
+      <!-- HUB VNet -->
+      <rect x="270" y="150" width="360" height="210" rx="12" fill="#0a1628" stroke="#0078d4" stroke-width="2"/>
+      <text x="450" y="172" font-size="9" fill="#0078d4" text-anchor="middle" letter-spacing="2">HUB VNET  10.0.0.0/16</text>
+
+      <!-- Azure Firewall inside hub -->
+      <rect x="310" y="185" width="110" height="50" rx="8" fill="#0d1f35" stroke="#f87171" stroke-width="1.5"/>
+      <text x="365" y="207" font-size="8" fill="#f87171" text-anchor="middle">AZURE FIREWALL</text>
+      <text x="365" y="220" font-size="7" fill="#4a5568" text-anchor="middle">MODULE 3</text>
+
+      <!-- Bastion inside hub -->
+      <rect x="440" y="185" width="110" height="50" rx="8" fill="#0d1f35" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="495" y="207" font-size="8" fill="#fbbf24" text-anchor="middle">AZURE BASTION</text>
+      <text x="495" y="220" font-size="7" fill="#4a5568" text-anchor="middle">MODULE 2</text>
+
+      <!-- Route Table inside hub -->
+      <rect x="310" y="250" width="240" height="40" rx="8" fill="#0d1f35" stroke="#1e2d47"/>
+      <text x="430" y="268" font-size="8" fill="#8899bb" text-anchor="middle">UDR / ROUTE TABLES</text>
+      <text x="430" y="282" font-size="7" fill="#4a5568" text-anchor="middle">MODULE 3</text>
+
+      <!-- DNS Resolver inside hub -->
+      <rect x="310" y="305" width="240" height="40" rx="8" fill="#0d1f35" stroke="#c084fc" stroke-width="1.5"/>
+      <text x="430" y="323" font-size="8" fill="#c084fc" text-anchor="middle">PRIVATE DNS RESOLVER</text>
+      <text x="430" y="337" font-size="7" fill="#4a5568" text-anchor="middle">MODULE 4</text>
+
+      <!-- SPOKE 1 -->
+      <rect x="30" y="190" width="200" height="155" rx="12" fill="#0a1628" stroke="#00c896" stroke-width="1.5"/>
+      <text x="130" y="212" font-size="9" fill="#00c896" text-anchor="middle" letter-spacing="1">SPOKE-1  10.1.0.0/16</text>
+      <text x="130" y="225" font-size="7" fill="#4a5568" text-anchor="middle">App Tier</text>
+      <rect x="55" y="235" width="150" height="35" rx="6" fill="#0d1f35" stroke="#1e2d47"/>
+      <text x="130" y="253" font-size="8" fill="#8899bb" text-anchor="middle">VM (Linux/Win)</text>
+      <text x="130" y="265" font-size="7" fill="#4a5568" text-anchor="middle">NSG + ASG  MOD 2</text>
+      <rect x="55" y="280" width="150" height="35" rx="6" fill="#0d1f35" stroke="#c084fc" stroke-width="1"/>
+      <text x="130" y="298" font-size="8" fill="#c084fc" text-anchor="middle">Private Endpoint</text>
+      <text x="130" y="311" font-size="7" fill="#4a5568" text-anchor="middle">SQL / Storage  MOD 4</text>
+      <rect x="55" y="325" width="150" height="14" rx="4" fill="#0d1f35" stroke="#1e2d47"/>
+      <text x="130" y="336" font-size="7" fill="#4a5568" text-anchor="middle">PEERING  MODULE 2</text>
+
+      <!-- SPOKE 2 -->
+      <rect x="670" y="190" width="200" height="155" rx="12" fill="#0a1628" stroke="#ff8c42" stroke-width="1.5"/>
+      <text x="770" y="212" font-size="9" fill="#ff8c42" text-anchor="middle" letter-spacing="1">SPOKE-2  10.2.0.0/16</text>
+      <text x="770" y="225" font-size="7" fill="#4a5568" text-anchor="middle">Web Tier</text>
+      <rect x="695" y="235" width="150" height="35" rx="6" fill="#0d1f35" stroke="#1e2d47"/>
+      <text x="770" y="253" font-size="8" fill="#8899bb" text-anchor="middle">App Gateway v2</text>
+      <text x="770" y="265" font-size="7" fill="#4a5568" text-anchor="middle">WAF Mode  MODULE 5</text>
+      <rect x="695" y="280" width="150" height="35" rx="6" fill="#0d1f35" stroke="#fbbf24" stroke-width="1"/>
+      <text x="770" y="298" font-size="8" fill="#fbbf24" text-anchor="middle">Load Balancer</text>
+      <text x="770" y="311" font-size="7" fill="#4a5568" text-anchor="middle">Internal LB  MODULE 5</text>
+      <rect x="695" y="325" width="150" height="14" rx="4" fill="#0d1f35" stroke="#1e2d47"/>
+      <text x="770" y="336" font-size="7" fill="#4a5568" text-anchor="middle">PEERING  MODULE 2</text>
+
+      <!-- Network Watcher -->
+      <rect x="200" y="420" width="130" height="45" rx="8" fill="#0d1f35" stroke="#5ab4f0" stroke-width="1.5"/>
+      <text x="265" y="440" font-size="8" fill="#5ab4f0" text-anchor="middle">NETWORK WATCHER</text>
+      <text x="265" y="453" font-size="7" fill="#4a5568" text-anchor="middle">Flow Logs / Topology</text>
+
+      <!-- Monitor -->
+      <rect x="360" y="420" width="180" height="45" rx="8" fill="#0d1f35" stroke="#00c896" stroke-width="1.5"/>
+      <text x="450" y="440" font-size="8" fill="#00c896" text-anchor="middle">AZURE MONITOR / NSG</text>
+      <text x="450" y="453" font-size="7" fill="#4a5568" text-anchor="middle">Diagnostics  MODULE 6</text>
+
+      <!-- NAT GW -->
+      <rect x="570" y="420" width="130" height="45" rx="8" fill="#0d1f35" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="635" y="440" font-size="8" fill="#fbbf24" text-anchor="middle">NAT GATEWAY</text>
+      <text x="635" y="453" font-size="7" fill="#4a5568" text-anchor="middle">Outbound Internet</text>
+
+      <!-- Arrows -->
+      <!-- Internet → Front Door -->
+      <line x1="160" y1="60" x2="198" y2="60" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Front Door → Hub -->
+      <line x1="255" y1="90" x2="350" y2="150" stroke="#0078d4" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+      <!-- VPN → Hub -->
+      <line x1="390" y1="90" x2="390" y2="148" stroke="#00c896" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+      <!-- Hub ↔ Spoke1 -->
+      <line x1="270" y1="255" x2="230" y2="255" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="230" y1="265" x2="270" y2="265" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Hub ↔ Spoke2 -->
+      <line x1="630" y1="255" x2="668" y2="255" stroke="#ff8c42" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="668" y1="265" x2="630" y2="265" stroke="#ff8c42" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Hub → Monitor -->
+      <line x1="450" y1="360" x2="450" y2="418" stroke="#4a5568" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arr2)"/>
+
+      <!-- Legend -->
+      <rect x="700" y="420" width="180" height="50" rx="6" fill="#0a1628" stroke="#1e2d47"/>
+      <rect x="710" y="430" width="10" height="2" fill="#0078d4"/>
+      <text x="725" y="434" font-size="7" fill="#8899bb">VNet Peering</text>
+      <rect x="710" y="442" width="10" height="2" fill="#00c896"/>
+      <text x="725" y="446" font-size="7" fill="#8899bb">VPN Tunnel</text>
+      <rect x="710" y="454" width="10" height="2" fill="#4a5568"/>
+      <text x="725" y="458" font-size="7" fill="#8899bb">Monitoring</text>
+      <line x1="760" y1="430" x2="770" y2="430" stroke="#0078d4" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="760" y1="442" x2="770" y2="442" stroke="#00c896" stroke-width="1" stroke-dasharray="3,2"/>
+    </svg>
+  </div>
+</div>
+
+<!-- PROGRESS TRACK -->
+<div class="progress-track">
+  <div class="section-title">Learning Path</div>
+  <div class="section-subtitle">Complete modules in order — each builds on the previous</div>
+  <div class="track-grid">
+    <div class="track-item"><span class="track-num">MOD 1</span><span class="track-name">VNets & Subnets</span></div>
+    <div class="track-item"><span class="track-num">MOD 2</span><span class="track-name">Peering, NSG & Bastion</span></div>
+    <div class="track-item"><span class="track-num">MOD 3</span><span class="track-name">Firewall & Routing</span></div>
+    <div class="track-item"><span class="track-num">MOD 4</span><span class="track-name">DNS & Private Endpoints</span></div>
+    <div class="track-item"><span class="track-num">MOD 5</span><span class="track-name">Load Balancing & App GW</span></div>
+    <div class="track-item"><span class="track-num">MOD 6</span><span class="track-name">VPN, Monitor & Cleanup</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- LABS CONTENT -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="labs-container">
+
+  <!-- ─── MODULE 1 ──────────────────────────────────────── -->
+  <div class="module mod-1">
+    <div class="module-header">
+      <span class="module-badge">MODULE 01</span>
+      <span class="module-title">Virtual Networks & Subnets — The Foundation</span>
+      <span class="module-time">~60 min</span>
+    </div>
+
+    <!-- LAB 1.1 -->
+    <div class="lab-card" id="lab11">
+      <div class="lab-card-header" onclick="toggleLab('lab11')">
+        <span class="lab-num">LAB 1.1</span>
+        <span class="lab-title">Create a Resource Group & Hub VNet</span>
+        <div class="lab-tags">
+          <span class="tag">VNet</span><span class="tag">Subnets</span><span class="tag">Address Space</span>
+        </div>
+        <span class="lab-time">15 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Create a Resource Group and Hub Virtual Network with structured subnets to serve as the central connectivity point for the entire lab.
+        </div>
+        <div class="steps-heading">Step-by-Step Instructions</div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Create Resource Group</strong>
+              <p>Navigate to <span class="nav-path">Azure Portal<span class="arrow">→</span>Resource Groups<span class="arrow">→</span>+ Create</span>. Enter Name: <code>rg-networking-lab</code>, Region: <code>East US 2</code>. Click Review + Create, then Create.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Create the Hub VNet</strong>
+              <p>Navigate to <span class="nav-path">Virtual Networks<span class="arrow">→</span>+ Create</span>. Set Resource Group: <code>rg-networking-lab</code>, Name: <code>vnet-hub</code>, Region: <code>East US 2</code>.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Configure IP Address Space</strong>
+              <p>On the IP Addresses tab, delete the default address space and add: <code>10.0.0.0/16</code>. This gives 65,534 usable addresses for the hub.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Add Required Subnets</strong>
+              <p>Create the following subnets by clicking <strong>+ Add subnet</strong> for each:</p>
+              <table class="config-table">
+                <thead><tr><th>Subnet Name</th><th>Address Range</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td><code>AzureFirewallSubnet</code></td><td><code>10.0.1.0/26</code></td><td>Required name for Azure Firewall</td></tr>
+                  <tr><td><code>AzureBastionSubnet</code></td><td><code>10.0.2.0/27</code></td><td>Required name for Bastion (/27 minimum)</td></tr>
+                  <tr><td><code>GatewaySubnet</code></td><td><code>10.0.3.0/27</code></td><td>Required name for VPN Gateway</td></tr>
+                  <tr><td><code>snet-hub-shared</code></td><td><code>10.0.4.0/24</code></td><td>Shared services, DNS Resolver</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">5</span>
+            <div class="step-content">
+              <strong>Review & Create</strong>
+              <p>Click Review + Create. Validate that all 4 subnets are listed, then click Create and wait for deployment.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          Go to vnet-hub → Subnets. Confirm all 4 subnets appear with correct CIDR ranges. The address space 10.0.0.0/16 should be listed under Address Space.
+        </div>
+        <div class="tip-box">The subnet names AzureFirewallSubnet, AzureBastionSubnet, and GatewaySubnet are case-sensitive and mandatory for those services to work correctly.</div>
+      </div>
+    </div>
+
+    <!-- LAB 1.2 -->
+    <div class="lab-card" id="lab12">
+      <div class="lab-card-header" onclick="toggleLab('lab12')">
+        <span class="lab-num">LAB 1.2</span>
+        <span class="lab-title">Create Spoke VNets (Spoke-1 & Spoke-2)</span>
+        <div class="lab-tags">
+          <span class="tag">VNet</span><span class="tag">Spoke</span><span class="tag">CIDR</span>
+        </div>
+        <span class="lab-time">15 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="prereq-box"><strong>PREREQUISITE</strong> LAB 1.1 completed — rg-networking-lab resource group must exist.</div>
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Create two spoke VNets representing application tiers (App and Web). Each gets segmented subnets for workloads.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Create Spoke-1 (App Tier)</strong>
+              <p>Navigate to <span class="nav-path">Virtual Networks<span class="arrow">→</span>+ Create</span>. Name: <code>vnet-spoke1</code>, RG: <code>rg-networking-lab</code>, Region: <code>East US 2</code>, Address space: <code>10.1.0.0/16</code>.</p>
+              <p>Add subnets:</p>
+              <table class="config-table">
+                <thead><tr><th>Subnet</th><th>CIDR</th></tr></thead>
+                <tbody>
+                  <tr><td><code>snet-app-frontend</code></td><td><code>10.1.1.0/24</code></td></tr>
+                  <tr><td><code>snet-app-backend</code></td><td><code>10.1.2.0/24</code></td></tr>
+                  <tr><td><code>snet-app-data</code></td><td><code>10.1.3.0/24</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Create Spoke-2 (Web Tier)</strong>
+              <p>Repeat the process. Name: <code>vnet-spoke2</code>, Address space: <code>10.2.0.0/16</code>.</p>
+              <table class="config-table">
+                <thead><tr><th>Subnet</th><th>CIDR</th></tr></thead>
+                <tbody>
+                  <tr><td><code>snet-web-appgw</code></td><td><code>10.2.1.0/24</code></td></tr>
+                  <tr><td><code>snet-web-vmss</code></td><td><code>10.2.2.0/24</code></td></tr>
+                  <tr><td><code>snet-web-lb</code></td><td><code>10.2.3.0/24</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          In Resource Group rg-networking-lab you should now see 3 VNets: vnet-hub, vnet-spoke1, vnet-spoke2. Confirm no overlapping address spaces (10.0, 10.1, 10.2).
+        </div>
+        <div class="tip-box">Always plan CIDR ranges upfront. Non-overlapping address spaces are required for VNet peering. Document your IP plan before creating resources.</div>
+      </div>
+    </div>
+
+    <!-- LAB 1.3 -->
+    <div class="lab-card" id="lab13">
+      <div class="lab-card-header" onclick="toggleLab('lab13')">
+        <span class="lab-num">LAB 1.3</span>
+        <span class="lab-title">Deploy Test VMs via Azure Portal</span>
+        <div class="lab-tags">
+          <span class="tag">VMs</span><span class="tag">NIC</span><span class="tag">No Public IP</span>
+        </div>
+        <span class="lab-time">20 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="prereq-box"><strong>PREREQUISITE</strong> LABs 1.1 & 1.2 completed. VNets vnet-spoke1 and vnet-spoke2 must exist.</div>
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Deploy two lightweight test VMs (one per spoke) with no public IP — connectivity will be provided via Bastion in Module 2.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Create VM in Spoke-1</strong>
+              <p>Navigate to <span class="nav-path">Virtual Machines<span class="arrow">→</span>+ Create<span class="arrow">→</span>Azure Virtual Machine</span>.</p>
+              <table class="config-table">
+                <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+                <tbody>
+                  <tr><td>Name</td><td><code>vm-spoke1-app</code></td></tr>
+                  <tr><td>Region</td><td><code>East US 2</code></td></tr>
+                  <tr><td>Image</td><td><code>Ubuntu Server 24.04 LTS</code></td></tr>
+                  <tr><td>Size</td><td><code>Standard_B1s</code> (cheapest)</td></tr>
+                  <tr><td>Authentication</td><td>Password (simpler for lab)</td></tr>
+                  <tr><td>Public IP</td><td><strong>None</strong></td></tr>
+                  <tr><td>VNet / Subnet</td><td><code>vnet-spoke1 / snet-app-frontend</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Disks & Other Tabs</strong>
+              <p>On the Disks tab, choose Standard SSD. Leave Management and Monitoring at defaults. Click Review + Create → Create.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Create VM in Spoke-2</strong>
+              <p>Repeat the process with Name: <code>vm-spoke2-web</code>, VNet/Subnet: <code>vnet-spoke2 / snet-web-vmss</code>. Also use Windows Server 2022 to practice cross-OS connectivity. No Public IP.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          Both VMs should be Running in Azure Portal. Under Networking, confirm each has a private IP only (no public IP). Private IPs should fall in their subnet ranges.
+        </div>
+        <div class="warn-box">Do NOT assign Public IPs to VMs in this lab. Security best practice is to use Bastion for access, which we configure in Module 2.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODULE 2 ──────────────────────────────────────── -->
+  <div class="module mod-2">
+    <div class="module-header">
+      <span class="module-badge">MODULE 02</span>
+      <span class="module-title">VNet Peering, NSGs, ASGs & Azure Bastion</span>
+      <span class="module-time">~90 min</span>
+    </div>
+
+    <!-- LAB 2.1 -->
+    <div class="lab-card" id="lab21">
+      <div class="lab-card-header" onclick="toggleLab('lab21')">
+        <span class="lab-num">LAB 2.1</span>
+        <span class="lab-title">Configure VNet Peering (Hub ↔ Spoke-1 & Spoke-2)</span>
+        <div class="lab-tags">
+          <span class="tag">Peering</span><span class="tag">Hub-Spoke</span><span class="tag">Gateway Transit</span>
+        </div>
+        <span class="lab-time">20 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="prereq-box"><strong>PREREQUISITE</strong> All three VNets created in Module 1.</div>
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Enable bidirectional VNet peering between the Hub and each Spoke. Enable "Allow Gateway Transit" on the Hub side so VPN connectivity extends to spokes.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Peer Hub → Spoke-1</strong>
+              <p>Go to <span class="nav-path">vnet-hub<span class="arrow">→</span>Peerings<span class="arrow">→</span>+ Add</span>. Fill in:</p>
+              <table class="config-table">
+                <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+                <tbody>
+                  <tr><td>Peering link name (this→remote)</td><td><code>hub-to-spoke1</code></td></tr>
+                  <tr><td>Peering link name (remote→this)</td><td><code>spoke1-to-hub</code></td></tr>
+                  <tr><td>Remote VNet</td><td><code>vnet-spoke1</code></td></tr>
+                  <tr><td>Allow gateway transit</td><td><strong>Enabled</strong> (Hub side)</td></tr>
+                  <tr><td>Use remote gateways</td><td><strong>Enabled</strong> (Spoke side)</td></tr>
+                  <tr><td>Allow forwarded traffic</td><td><strong>Enabled</strong> (both)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Peer Hub → Spoke-2</strong>
+              <p>Repeat identically for vnet-spoke2. Peering names: <code>hub-to-spoke2</code> / <code>spoke2-to-hub</code>.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Verify Peering Status</strong>
+              <p>On vnet-hub → Peerings, both peerings should show status <strong>Connected</strong>. On vnet-spoke1 → Peerings, you should see <code>spoke1-to-hub</code> also Connected.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          From vm-spoke1-app, try to ping the private IP of vm-spoke2-web (once Bastion is configured). Traffic will fail until firewall rules are set — that's expected and intentional for now.
+        </div>
+        <div class="tip-box">VNet Peering is non-transitive by default. Spoke-1 and Spoke-2 cannot talk directly — all traffic between spokes must route through the Hub firewall. This is the Hub & Spoke security benefit.</div>
+      </div>
+    </div>
+
+    <!-- LAB 2.2 -->
+    <div class="lab-card" id="lab22">
+      <div class="lab-card-header" onclick="toggleLab('lab22')">
+        <span class="lab-num">LAB 2.2</span>
+        <span class="lab-title">Create NSGs and Application Security Groups</span>
+        <div class="lab-tags">
+          <span class="tag">NSG</span><span class="tag">ASG</span><span class="tag">Inbound Rules</span><span class="tag">Outbound</span>
+        </div>
+        <span class="lab-time">25 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Create NSGs to restrict traffic to subnets and use Application Security Groups (ASGs) to group VMs logically for easier rule management.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Create Application Security Groups</strong>
+              <p>Navigate to <span class="nav-path">Application Security Groups<span class="arrow">→</span>+ Create</span>. Create two ASGs in rg-networking-lab:</p>
+              <p>• <code>asg-app-servers</code> — for application tier VMs<br>• <code>asg-web-servers</code> — for web tier VMs</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Assign VMs to ASGs</strong>
+              <p>Go to <span class="nav-path">vm-spoke1-app<span class="arrow">→</span>Networking<span class="arrow">→</span>Application Security Groups<span class="arrow">→</span>Configure</span>. Select <code>asg-app-servers</code>. Repeat for vm-spoke2-web with <code>asg-web-servers</code>.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Create NSG for App Subnet</strong>
+              <p>Navigate to <span class="nav-path">Network Security Groups<span class="arrow">→</span>+ Create</span>. Name: <code>nsg-snet-app-frontend</code>, RG: rg-networking-lab.</p>
+              <p>Add inbound rules:</p>
+              <table class="config-table">
+                <thead><tr><th>Priority</th><th>Name</th><th>Source</th><th>Port</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td>100</td><td><code>Allow-HTTP-From-Web</code></td><td>ASG: asg-web-servers</td><td>8080</td><td>Allow</td></tr>
+                  <tr><td>110</td><td><code>Allow-Bastion-SSH</code></td><td>Service Tag: AzureBastionSubnet</td><td>22</td><td>Allow</td></tr>
+                  <tr><td>200</td><td><code>Allow-Hub-Mgmt</code></td><td>10.0.0.0/16</td><td>*</td><td>Allow</td></tr>
+                  <tr><td>4000</td><td><code>Deny-All-Inbound</code></td><td>*</td><td>*</td><td>Deny</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Associate NSG to Subnet</strong>
+              <p>On the NSG → Subnets → Associate. Select vnet-spoke1 and snet-app-frontend.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">5</span>
+            <div class="step-content">
+              <strong>Create & Associate NSG for snet-web-vmss</strong>
+              <p>Repeat steps 3–4 with Name: <code>nsg-snet-web-vmss</code>. Allow inbound 80/443 from Internet (Service Tag: Internet), Allow SSH/RDP from AzureBastion, Deny-All last. Associate to vnet-spoke2/snet-web-vmss.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="tip-box">Using ASGs instead of IP addresses in NSG rules means your rules remain valid when VMs are restarted or scaled — the logical group stays the same.</div>
+        <div class="warn-box">NSG rules are evaluated in priority order (lowest number first). The implicit Deny-All at priority 65500 is always at the end, but adding an explicit deny at 4000 makes the policy visible and intentional.</div>
+      </div>
+    </div>
+
+    <!-- LAB 2.3 -->
+    <div class="lab-card" id="lab23">
+      <div class="lab-card-header" onclick="toggleLab('lab23')">
+        <span class="lab-num">LAB 2.3</span>
+        <span class="lab-title">Deploy Azure Bastion (Standard SKU)</span>
+        <div class="lab-tags">
+          <span class="tag">Bastion</span><span class="tag">Secure Access</span><span class="tag">No Public IP on VMs</span>
+        </div>
+        <span class="lab-time">20 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="prereq-box"><strong>PREREQUISITE</strong> AzureBastionSubnet (10.0.2.0/27) must exist in vnet-hub.</div>
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Deploy Azure Bastion in the Hub VNet to provide secure, browser-based SSH/RDP access to VMs without exposing public IPs or opening management ports.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Navigate to Bastion</strong>
+              <p>Search for <strong>Bastion</strong> in the portal search bar → + Create.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Configure Basics</strong>
+              <table class="config-table">
+                <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+                <tbody>
+                  <tr><td>Name</td><td><code>bastion-hub</code></td></tr>
+                  <tr><td>Resource Group</td><td><code>rg-networking-lab</code></td></tr>
+                  <tr><td>Region</td><td><code>East US 2</code></td></tr>
+                  <tr><td>Tier / SKU</td><td><strong>Standard</strong> (enables native client, file copy)</td></tr>
+                  <tr><td>Virtual Network</td><td><code>vnet-hub</code></td></tr>
+                  <tr><td>Subnet</td><td><code>AzureBastionSubnet</code> (auto-selected)</td></tr>
+                  <tr><td>Public IP Address</td><td>Create new: <code>pip-bastion-hub</code>, Standard SKU</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Advanced Settings (Standard SKU)</strong>
+              <p>Under Advanced tab, enable <strong>Native Client Support</strong> and <strong>Copy/Paste</strong>. Click Review + Create → Create. Deployment takes ~5 minutes.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Test VM Access via Bastion</strong>
+              <p>Navigate to <span class="nav-path">vm-spoke1-app<span class="arrow">→</span>Connect<span class="arrow">→</span>Bastion</span>. Enter your username/password. A browser SSH session should open.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          You can SSH into vm-spoke1-app via browser. Run <code>ip a</code> and confirm the IP is 10.1.1.x. Try pinging 10.2.x.x (spoke2) — should fail (no peering-through-hub routing yet, which comes in Module 3).
+        </div>
+        <div class="tip-box">Bastion Standard SKU supports native RDP/SSH client via Azure CLI, tunneling, and shareable Bastion links — worth the extra cost for enterprise scenarios.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODULE 3 ──────────────────────────────────────── -->
+  <div class="module mod-3">
+    <div class="module-header">
+      <span class="module-badge">MODULE 03</span>
+      <span class="module-title">Azure Firewall & User-Defined Routes</span>
+      <span class="module-time">~90 min</span>
+    </div>
+
+    <!-- LAB 3.1 -->
+    <div class="lab-card" id="lab31">
+      <div class="lab-card-header" onclick="toggleLab('lab31')">
+        <span class="lab-num">LAB 3.1</span>
+        <span class="lab-title">Deploy Azure Firewall Premium in the Hub</span>
+        <div class="lab-tags">
+          <span class="tag">Azure Firewall</span><span class="tag">Premium SKU</span><span class="tag">TLS Inspection</span>
+        </div>
+        <span class="lab-time">30 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="prereq-box"><strong>PREREQUISITE</strong> AzureFirewallSubnet (10.0.1.0/26) must exist in vnet-hub.</div>
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Deploy Azure Firewall Premium in the Hub and create a Firewall Policy to centrally control all inter-spoke and outbound traffic.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Create Firewall Policy First</strong>
+              <p>Search <strong>Firewall Policies</strong> → + Create. Name: <code>azfw-policy-hub</code>, RG: rg-networking-lab, Region: East US 2, Policy tier: <strong>Premium</strong>. Click Review + Create.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Deploy Azure Firewall</strong>
+              <p>Search <strong>Firewalls</strong> → + Create.</p>
+              <table class="config-table">
+                <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+                <tbody>
+                  <tr><td>Name</td><td><code>azfw-hub</code></td></tr>
+                  <tr><td>Region</td><td><code>East US 2</code></td></tr>
+                  <tr><td>Tier</td><td><strong>Premium</strong></td></tr>
+                  <tr><td>Firewall management</td><td>Use Firewall Policy</td></tr>
+                  <tr><td>Firewall Policy</td><td><code>azfw-policy-hub</code></td></tr>
+                  <tr><td>Virtual Network</td><td><code>vnet-hub</code></td></tr>
+                  <tr><td>Subnet</td><td><code>AzureFirewallSubnet</code></td></tr>
+                  <tr><td>Public IP</td><td>Create new: <code>pip-azfw-hub</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Note the Firewall Private IP</strong>
+              <p>After deployment, navigate to azfw-hub → Overview and note the <strong>Private IP address</strong> (should be 10.0.1.4). You will use this as the next hop in UDRs.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Add Network Rules to Firewall Policy</strong>
+              <p>Go to <span class="nav-path">azfw-policy-hub<span class="arrow">→</span>Network Rules<span class="arrow">→</span>+ Add Rule Collection</span>. Create:</p>
+              <table class="config-table">
+                <thead><tr><th>Collection Name</th><th>Priority</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td><code>net-rules-spoke-to-spoke</code></td><td>200</td><td>Allow</td></tr>
+                </tbody>
+              </table>
+              <p>Inside the collection, add rule: Name: <code>allow-spoke1-to-spoke2</code>, Source: <code>10.1.0.0/16</code>, Destination: <code>10.2.0.0/16</code>, Protocol: Any, Port: *</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">5</span>
+            <div class="step-content">
+              <strong>Add Application Rules for Internet Outbound</strong>
+              <p>In azfw-policy-hub → Application Rules → + Add Rule Collection. Name: <code>app-rules-internet</code>, Priority: 300, Action: Allow. Add rule: Name: <code>allow-updates</code>, Source: <code>10.1.0.0/8</code>, Protocol: http:80,https:443, Target FQDNs: <code>*.ubuntu.com, *.microsoft.com</code>.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          Go to azfw-hub → Firewall Policy. Confirm azfw-policy-hub is associated. The firewall should show Running state.
+        </div>
+        <div class="warn-box">Azure Firewall Premium incurs significant cost (~$2.50/hr). Remember to stop/deallocate when not in use by scaling down to 0 instances, or deallocate with PowerShell — or plan to clean up at the end of Module 6.</div>
+      </div>
+    </div>
+
+    <!-- LAB 3.2 -->
+    <div class="lab-card" id="lab32">
+      <div class="lab-card-header" onclick="toggleLab('lab32')">
+        <span class="lab-num">LAB 3.2</span>
+        <span class="lab-title">Configure Route Tables (UDR) to Force Traffic Through Firewall</span>
+        <div class="lab-tags">
+          <span class="tag">UDR</span><span class="tag">Route Table</span><span class="tag">Next Hop</span>
+        </div>
+        <span class="lab-time">20 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="prereq-box"><strong>PREREQUISITE</strong> Azure Firewall deployed with private IP 10.0.1.4 (verify yours in the portal).</div>
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Create User-Defined Routes so that all spoke-to-spoke and spoke-to-internet traffic is forced through the Hub Azure Firewall, not sent directly.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Create Route Table for Spoke-1</strong>
+              <p>Navigate to <span class="nav-path">Route Tables<span class="arrow">→</span>+ Create</span>. Name: <code>rt-spoke1</code>, RG: rg-networking-lab, Region: East US 2. <strong>Disable</strong> "Propagate gateway routes" toggle (this is critical — set to No).</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Add Routes to rt-spoke1</strong>
+              <p>Navigate to rt-spoke1 → Routes → + Add:</p>
+              <table class="config-table">
+                <thead><tr><th>Route Name</th><th>Address Prefix</th><th>Next Hop Type</th><th>Next Hop IP</th></tr></thead>
+                <tbody>
+                  <tr><td><code>route-to-spoke2</code></td><td><code>10.2.0.0/16</code></td><td>Virtual Appliance</td><td><code>10.0.1.4</code></td></tr>
+                  <tr><td><code>route-to-internet</code></td><td><code>0.0.0.0/0</code></td><td>Virtual Appliance</td><td><code>10.0.1.4</code></td></tr>
+                  <tr><td><code>route-to-hub</code></td><td><code>10.0.0.0/16</code></td><td>Virtual Appliance</td><td><code>10.0.1.4</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Associate rt-spoke1 to Spoke-1 Subnets</strong>
+              <p>rt-spoke1 → Subnets → Associate. Select vnet-spoke1 and snet-app-frontend. Repeat for snet-app-backend and snet-app-data.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Create & Associate rt-spoke2</strong>
+              <p>Repeat steps 1–3 for Spoke-2. Route <code>route-to-spoke1</code> pointing to <code>10.1.0.0/16</code> via <code>10.0.1.4</code>. Associate to all snet-web-* subnets.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          From vm-spoke1-app (via Bastion), ping vm-spoke2-web private IP. Now it should reach (if firewall rule allows it). Check Azure Firewall Logs in the portal under Diagnostics to confirm traffic is flowing through the firewall.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODULE 4 ──────────────────────────────────────── -->
+  <div class="module mod-4">
+    <div class="module-header">
+      <span class="module-badge">MODULE 04</span>
+      <span class="module-title">Private DNS, Private Endpoints & Service Endpoints</span>
+      <span class="module-time">~70 min</span>
+    </div>
+
+    <!-- LAB 4.1 -->
+    <div class="lab-card" id="lab41">
+      <div class="lab-card-header" onclick="toggleLab('lab41')">
+        <span class="lab-num">LAB 4.1</span>
+        <span class="lab-title">Create Private DNS Zone and Link to VNets</span>
+        <div class="lab-tags">
+          <span class="tag">Private DNS</span><span class="tag">DNS Resolution</span><span class="tag">VNet Link</span>
+        </div>
+        <span class="lab-time">15 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Create a Private DNS Zone for internal name resolution across all VNets in the topology, and link it to Hub and both Spokes.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Create Private DNS Zone</strong>
+              <p>Navigate to <span class="nav-path">Private DNS Zones<span class="arrow">→</span>+ Create</span>. Name: <code>internal.contoso.lab</code>, RG: rg-networking-lab. Click Review + Create.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Link to Hub VNet</strong>
+              <p>Go to internal.contoso.lab → Virtual Network Links → + Add. Name: <code>link-hub</code>, VNet: vnet-hub. Enable <strong>auto-registration</strong> for Hub, then click OK.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Link Spoke VNets (Registration Off)</strong>
+              <p>Add two more links: <code>link-spoke1</code> (vnet-spoke1, auto-registration OFF) and <code>link-spoke2</code> (vnet-spoke2, auto-registration OFF). Spokes resolve but don't register — only Hub manages DNS records.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Manually Add DNS A-Record for Test</strong>
+              <p>internal.contoso.lab → Record Sets → + Add. Name: <code>app-server</code>, Type: A, IP: private IP of vm-spoke1-app. TTL: 300.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          From vm-spoke2-web (via Bastion), run: <code>nslookup app-server.internal.contoso.lab</code>. It should resolve to the private IP of vm-spoke1-app.
+        </div>
+      </div>
+    </div>
+
+    <!-- LAB 4.2 -->
+    <div class="lab-card" id="lab42">
+      <div class="lab-card-header" onclick="toggleLab('lab42')">
+        <span class="lab-num">LAB 4.2</span>
+        <span class="lab-title">Create Storage Account with Private Endpoint</span>
+        <div class="lab-tags">
+          <span class="tag">Private Endpoint</span><span class="tag">Storage</span><span class="tag">Private Link</span>
+        </div>
+        <span class="lab-time">25 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Create an Azure Storage Account and secure it using Private Endpoint so that it is only accessible from inside your VNet — not over the public internet.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Create Storage Account</strong>
+              <p>Navigate to <span class="nav-path">Storage Accounts<span class="arrow">→</span>+ Create</span>. Name: <code>stlabXXXXX</code> (must be globally unique), RG: rg-networking-lab, Region: East US 2, Redundancy: LRS. Under <strong>Networking</strong> tab, set connectivity to <strong>Disabled</strong> (no public access).</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Create Private Endpoint for Blob</strong>
+              <p>On the storage account → Networking → Private Endpoint Connections → + Private Endpoint.</p>
+              <table class="config-table">
+                <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+                <tbody>
+                  <tr><td>Name</td><td><code>pe-storage-blob</code></td></tr>
+                  <tr><td>Region</td><td><code>East US 2</code></td></tr>
+                  <tr><td>Target sub-resource</td><td><code>blob</code></td></tr>
+                  <tr><td>Virtual Network</td><td><code>vnet-spoke1</code></td></tr>
+                  <tr><td>Subnet</td><td><code>snet-app-data</code></td></tr>
+                  <tr><td>Private DNS Integration</td><td>Yes — create new zone <code>privatelink.blob.core.windows.net</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Link Private DNS Zone to All VNets</strong>
+              <p>Go to the auto-created zone <code>privatelink.blob.core.windows.net</code> → Virtual Network Links → Add link for vnet-hub and vnet-spoke2 (spoke1 is already linked from creation).</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Verify Firewall Rules Allow Storage</strong>
+              <p>In azfw-policy-hub → Application Rules, add rule to allow <code>*.blob.core.windows.net</code> on port 443 from the spoke subnets.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          From vm-spoke1-app, run: <code>nslookup stlabXXXXX.blob.core.windows.net</code>. The resolved IP should be in the 10.1.3.x range (snet-app-data), NOT a public IP. This confirms Private Link is working.
+        </div>
+        <div class="tip-box">If the DNS still resolves to a public IP, check that the Private DNS Zone is properly linked to the VNet. The auto-registration from Azure may take 1-2 minutes.</div>
+      </div>
+    </div>
+
+    <!-- LAB 4.3 -->
+    <div class="lab-card" id="lab43">
+      <div class="lab-card-header" onclick="toggleLab('lab43')">
+        <span class="lab-num">LAB 4.3</span>
+        <span class="lab-title">Deploy Azure Private DNS Resolver</span>
+        <div class="lab-tags">
+          <span class="tag">DNS Resolver</span><span class="tag">Inbound Endpoint</span><span class="tag">Outbound</span>
+        </div>
+        <span class="lab-time">20 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Deploy Azure Private DNS Resolver in the Hub to enable DNS resolution from on-premises (simulated) to Azure Private DNS zones and vice versa.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Prepare a Dedicated Subnet for Resolver</strong>
+              <p>In vnet-hub, add subnet: <code>snet-dns-resolver-inbound</code> (10.0.5.0/28) and <code>snet-dns-resolver-outbound</code> (10.0.6.0/28). Note: these subnets can only be used for DNS Resolver — no other resources.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Create DNS Private Resolver</strong>
+              <p>Search <strong>DNS Private Resolvers</strong> → + Create. Name: <code>dns-resolver-hub</code>, RG: rg-networking-lab, Region: East US 2, VNet: vnet-hub.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Create Inbound Endpoint</strong>
+              <p>On the Inbound Endpoints tab → + Add. Name: <code>inbound-from-onprem</code>, Subnet: snet-dns-resolver-inbound. Note the assigned IP (e.g., 10.0.5.4) — this is what on-premises DNS will forward to.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Create Outbound Endpoint + Forwarding Ruleset</strong>
+              <p>Add Outbound Endpoint → subnet: snet-dns-resolver-outbound. Then create a Forwarding Ruleset, link to all 3 VNets, and add rule: <code>onprem.local</code> → forward to simulated on-prem DNS IP 192.168.1.1.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          The DNS Resolver should show Running. Both Inbound and Outbound endpoints will appear under the resolver resource with assigned IPs.
+        </div>
+        <div class="tip-box">The Inbound Endpoint IP is what you configure on your on-premises DNS server as a conditional forwarder for the Azure DNS domains (e.g., forward *.internal.contoso.lab to 10.0.5.4).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODULE 5 ──────────────────────────────────────── -->
+  <div class="module mod-5">
+    <div class="module-header">
+      <span class="module-badge">MODULE 05</span>
+      <span class="module-title">Load Balancing, App Gateway & Front Door</span>
+      <span class="module-time">~90 min</span>
+    </div>
+
+    <!-- LAB 5.1 -->
+    <div class="lab-card" id="lab51">
+      <div class="lab-card-header" onclick="toggleLab('lab51')">
+        <span class="lab-num">LAB 5.1</span>
+        <span class="lab-title">Deploy Azure Internal Load Balancer (Standard SKU)</span>
+        <div class="lab-tags">
+          <span class="tag">Load Balancer</span><span class="tag">Internal LB</span><span class="tag">Health Probe</span>
+        </div>
+        <span class="lab-time">25 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Create an internal Azure Load Balancer in Spoke-2 to distribute traffic across backend VMs using health probes and load-balancing rules — entirely internal, no internet-facing IP.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Create Load Balancer</strong>
+              <p><span class="nav-path">Load Balancers<span class="arrow">→</span>+ Create</span>. Name: <code>lb-web-internal</code>, Region: East US 2, SKU: <strong>Standard</strong>, Type: <strong>Internal</strong>, Tier: Regional.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Configure Frontend IP</strong>
+              <p>Frontend IP tab → + Add Frontend IP. Name: <code>lb-frontend-ip</code>, VNet: vnet-spoke2, Subnet: snet-web-lb, Assignment: Static, IP: <code>10.2.3.10</code>.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Configure Backend Pool</strong>
+              <p>Backend Pools tab → + Add. Name: <code>lb-backend-pool</code>. Add vm-spoke2-web NIC (and any other web VMs you created). Click Save.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Create Health Probe</strong>
+              <p>Health Probes → + Add. Name: <code>hp-http-80</code>, Protocol: HTTP, Port: 80, Path: <code>/</code>, Interval: 15s, Unhealthy threshold: 2.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">5</span>
+            <div class="step-content">
+              <strong>Create Load Balancing Rule</strong>
+              <p>Load Balancing Rules → + Add. Name: <code>lbr-http</code>, Protocol: TCP, Frontend Port: 80, Backend Port: 80, Backend Pool: lb-backend-pool, Health Probe: hp-http-80. Enable <strong>Session Persistence</strong>: None.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          From vm-spoke1-app, curl http://10.2.3.10. If nginx/IIS is running on vm-spoke2-web, you should get a response. Check Load Balancer → Backend Pools to confirm VM shows Healthy.
+        </div>
+      </div>
+    </div>
+
+    <!-- LAB 5.2 -->
+    <div class="lab-card" id="lab52">
+      <div class="lab-card-header" onclick="toggleLab('lab52')">
+        <span class="lab-num">LAB 5.2</span>
+        <span class="lab-title">Deploy Application Gateway v2 with WAF</span>
+        <div class="lab-tags">
+          <span class="tag">App Gateway</span><span class="tag">WAF v2</span><span class="tag">Listener</span><span class="tag">Backend Pool</span>
+        </div>
+        <span class="lab-time">35 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="prereq-box"><strong>PREREQUISITE</strong> snet-web-appgw (10.2.1.0/24) must exist and have no NSG attached (App Gateway v2 requires special NSG rules or none).</div>
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Deploy Application Gateway v2 with WAF in Prevention mode in front of the web tier, providing L7 routing, SSL termination capability, and OWASP protection.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Create WAF Policy</strong>
+              <p>Search <strong>Web Application Firewall Policies</strong> → + Create. Name: <code>waf-policy-appgw</code>, Policy for: Regional WAF (Application Gateway). Under Policy Settings, set Mode to <strong>Prevention</strong>. Add OWASP 3.2 managed rules. Click Create.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Create Application Gateway</strong>
+              <p><span class="nav-path">Application Gateways<span class="arrow">→</span>+ Create</span>.</p>
+              <table class="config-table">
+                <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+                <tbody>
+                  <tr><td>Name</td><td><code>appgw-web</code></td></tr>
+                  <tr><td>Tier</td><td><strong>WAF V2</strong></td></tr>
+                  <tr><td>WAF Policy</td><td><code>waf-policy-appgw</code></td></tr>
+                  <tr><td>VNet/Subnet</td><td>vnet-spoke2 / snet-web-appgw</td></tr>
+                  <tr><td>Public IP</td><td>Create new: <code>pip-appgw-web</code>, Standard, Static</td></tr>
+                  <tr><td>Autoscaling</td><td>Min: 0, Max: 2 (saves cost)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Configure Backend Pool</strong>
+              <p>Backend Pools tab → Add pool. Name: <code>bp-web-vms</code>. Add vm-spoke2-web (by IP or FQDN). You can also point to the Load Balancer frontend IP 10.2.3.10.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Configure HTTP Settings + Listener + Rule</strong>
+              <p>HTTP Settings: Name <code>hs-http-80</code>, Port 80, Protocol HTTP. Listener: Name <code>listener-public-80</code>, Frontend IP: Public, Protocol: HTTP, Port: 80. Routing Rule: tie listener → backend pool → HTTP settings. Click Create.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          Note the Public IP of appgw-web. Open a browser and navigate to http://[pip-appgw-web-IP]. You should see the web server response. Check Application Gateway → Backend Health to confirm the pool shows Healthy.
+        </div>
+        <div class="tip-box">For Production: Add HTTPS listener with an SSL certificate from Key Vault. Use custom rules in the WAF Policy to block specific IPs or user-agents. Consider routing rules for path-based routing (/api/* vs /*).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODULE 6 ──────────────────────────────────────── -->
+  <div class="module mod-6">
+    <div class="module-header">
+      <span class="module-badge">MODULE 06</span>
+      <span class="module-title">VPN Gateway, Monitoring & Lab Cleanup</span>
+      <span class="module-time">~80 min</span>
+    </div>
+
+    <!-- LAB 6.1 -->
+    <div class="lab-card" id="lab61">
+      <div class="lab-card-header" onclick="toggleLab('lab61')">
+        <span class="lab-num">LAB 6.1</span>
+        <span class="lab-title">Deploy VPN Gateway (Point-to-Site with Certificate Auth)</span>
+        <div class="lab-tags">
+          <span class="tag">VPN Gateway</span><span class="tag">P2S</span><span class="tag">Certificate</span>
+        </div>
+        <span class="lab-time">35 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="prereq-box"><strong>PREREQUISITE</strong> GatewaySubnet (10.0.3.0/27) must exist in vnet-hub.</div>
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Deploy an Azure VPN Gateway in the Hub and configure Point-to-Site (P2S) connectivity so individual machines can connect to all spokes via the Hub using a certificate-based VPN profile.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Create VPN Gateway</strong>
+              <p><span class="nav-path">Virtual Network Gateways<span class="arrow">→</span>+ Create</span>.</p>
+              <table class="config-table">
+                <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+                <tbody>
+                  <tr><td>Name</td><td><code>vpngw-hub</code></td></tr>
+                  <tr><td>Region</td><td><code>East US 2</code></td></tr>
+                  <tr><td>Gateway Type</td><td>VPN</td></tr>
+                  <tr><td>VPN Type</td><td>Route-based</td></tr>
+                  <tr><td>SKU</td><td><strong>VpnGw1</strong> (minimum for P2S + BGP)</td></tr>
+                  <tr><td>Generation</td><td>Generation2</td></tr>
+                  <tr><td>VNet</td><td><code>vnet-hub</code></td></tr>
+                  <tr><td>Gateway subnet IP</td><td>Use existing GatewaySubnet</td></tr>
+                  <tr><td>Public IP</td><td>Create new: <code>pip-vpngw-hub</code>, Static</td></tr>
+                </tbody>
+              </table>
+              <p>Click Review + Create. <strong>Deployment takes 25–45 minutes.</strong></p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Generate Root Certificate (Self-Signed, via Portal PowerShell)</strong>
+              <p>Open Azure Cloud Shell (Bash/PowerShell icon in portal header). Run these commands to generate a self-signed root certificate and client certificate. The output gives you the public key data to paste into the gateway.</p>
+              <p style="font-size:0.78rem; color: var(--text-secondary); margin-top:0.5rem;">In PowerShell Cloud Shell:</p>
+              <div class="nav-path" style="display:block; white-space:pre-wrap;">$cert = New-SelfSignedCertificate -Type Custom -KeySpec Signature -Subject "CN=P2SRootCert" -KeyExportPolicy Exportable -HashAlgorithm sha256 -KeyLength 2048 -CertStoreLocation "Cert:\CurrentUser\My" -KeyUsageProperty Sign -KeyUsage CertSign
+
+$clientcert = New-SelfSignedCertificate -Type Custom -DnsName "P2SChildCert" -KeySpec Signature -Subject "CN=P2SChildCert" -KeyExportPolicy Exportable -HashAlgorithm sha256 -KeyLength 2048 -CertStoreLocation "Cert:\CurrentUser\My" -Signer $cert -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.2")
+
+[System.Convert]::ToBase64String($cert.RawData) | clip</div>
+              <p style="margin-top:0.5rem; font-size:0.82rem; color: var(--text-secondary);">Copy the base64 output — this is your root certificate public data.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Configure P2S on VPN Gateway</strong>
+              <p>Navigate to <span class="nav-path">vpngw-hub<span class="arrow">→</span>Point-to-site configuration<span class="arrow">→</span>Configure now</span>. Fill in:</p>
+              <table class="config-table">
+                <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+                <tbody>
+                  <tr><td>Address pool</td><td><code>172.16.0.0/24</code> (VPN client IPs)</td></tr>
+                  <tr><td>Tunnel type</td><td>IKEv2 and OpenVPN (SSL)</td></tr>
+                  <tr><td>Authentication type</td><td>Azure certificate</td></tr>
+                  <tr><td>Root certificate name</td><td><code>P2SRootCert</code></td></tr>
+                  <tr><td>Public certificate data</td><td>Paste base64 string from step 2</td></tr>
+                </tbody>
+              </table>
+              <p>Click Save. Wait 1–2 minutes for config to apply.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Download & Install VPN Client</strong>
+              <p>Still on Point-to-site configuration → <strong>Download VPN client</strong>. Extract the ZIP. Run the installer for your OS (Windows/macOS/Linux). Connect to the VPN profile.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          After connecting to the VPN, try pinging 10.1.1.x (vm-spoke1-app private IP) from your local machine. If UDR gateway propagation is correct and firewall rules allow it, the ping should succeed. Also try http://10.2.3.10 (Load Balancer).
+        </div>
+        <div class="warn-box">VPN Gateway SKU VpnGw1 costs approximately $0.19/hr. Stop the gateway when not testing by deallocating it from Cloud Shell to avoid unexpected charges.</div>
+      </div>
+    </div>
+
+    <!-- LAB 6.2 -->
+    <div class="lab-card" id="lab62">
+      <div class="lab-card-header" onclick="toggleLab('lab62')">
+        <span class="lab-num">LAB 6.2</span>
+        <span class="lab-title">Enable Network Watcher, Flow Logs & Connection Monitor</span>
+        <div class="lab-tags">
+          <span class="tag">Network Watcher</span><span class="tag">NSG Flow Logs</span><span class="tag">Topology</span><span class="tag">Connection Monitor</span>
+        </div>
+        <span class="lab-time">20 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Use Network Watcher to visualize your topology, enable NSG Flow Logs for traffic analysis, and set up Connection Monitor to track connectivity between VMs.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Enable Network Watcher</strong>
+              <p>Search <strong>Network Watcher</strong> in the portal. It may already be enabled. If not, click + Add → select your subscription and region East US 2 → Add.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>View Topology</strong>
+              <p>Network Watcher → Topology. Select Subscription, RG: rg-networking-lab, VNet: vnet-hub. Explore the interactive diagram showing all connected resources, subnets, and VMs.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Enable NSG Flow Logs</strong>
+              <p>Network Watcher → NSG Flow Logs → + Create. Select NSG: nsg-snet-app-frontend. Create a Storage Account for logs (or use stlabXXXXX). Enable Traffic Analytics with a Log Analytics Workspace (create one if needed). Version: 2. Retention: 7 days.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Create Connection Monitor</strong>
+              <p>Network Watcher → Connection Monitor → + Create. Name: <code>cm-spoke1-to-spoke2</code>. Source: vm-spoke1-app. Destination: vm-spoke2-web (private IP, port 80). Test group: every 30 seconds. Click Create and view results after ~5 min.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">5</span>
+            <div class="step-content">
+              <strong>Run IP Flow Verify & Next Hop Diagnostics</strong>
+              <p>Network Watcher → IP Flow Verify. VM: vm-spoke1-app, Direction: Outbound, Protocol: TCP, Remote IP: 10.2.1.x, Remote port: 80. It will tell you which NSG rule allows or denies this traffic. Also run Next Hop to confirm routing via 10.0.1.4 (Firewall).</p>
+            </div>
+          </li>
+        </ul>
+        <div class="verify-box">
+          <strong>✓ VERIFICATION</strong>
+          Topology view shows the full hub-spoke network. NSG Flow Logs appear in the storage account under /insights-logs-networksecuritygroupflowevent. Connection Monitor shows Pass/Fail with RTT latency.
+        </div>
+        <div class="tip-box">Traffic Analytics in Log Analytics can show you the top-talkers, blocked flows, and geographic traffic distribution — invaluable for security investigations and capacity planning.</div>
+      </div>
+    </div>
+
+    <!-- LAB 6.3 -->
+    <div class="lab-card" id="lab63">
+      <div class="lab-card-header" onclick="toggleLab('lab63')">
+        <span class="lab-num">LAB 6.3</span>
+        <span class="lab-title">Lab Cleanup — Delete All Resources</span>
+        <div class="lab-tags">
+          <span class="tag">Cleanup</span><span class="tag">Cost Management</span>
+        </div>
+        <span class="lab-time">10 min</span>
+        <span class="expand-btn">▼</span>
+      </div>
+      <div class="lab-body">
+        <div class="objective-box">
+          <strong>OBJECTIVE</strong>
+          Safely clean up all lab resources to avoid ongoing Azure charges. Follow the recommended deletion order to avoid dependency errors.
+        </div>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Recommended Deletion Order</strong>
+              <p>Delete in this order to avoid dependency issues:</p>
+              <p>1. VMs → 2. VPN Gateway → 3. Application Gateway → 4. Azure Firewall → 5. Azure Bastion → 6. Load Balancer → 7. Private Endpoints → 8. NSGs & Route Tables → 9. VNets → 10. Public IPs → 11. Storage Account → 12. DNS Zones → 13. Resource Group</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Delete Entire Resource Group (Fastest)</strong>
+              <p>Navigate to <span class="nav-path">Resource Groups<span class="arrow">→</span>rg-networking-lab<span class="arrow">→</span>Delete Resource Group</span>. Type the resource group name to confirm. Click Delete. Azure will delete all resources inside — this takes 5–15 minutes.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Verify No Orphaned Resources</strong>
+              <p>Check <span class="nav-path">All Resources</span> filtered to East US 2 and confirm nothing related to the lab remains. Also check Public IP Addresses — these are sometimes left behind.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="warn-box">VPN Gateways and Azure Firewall accrue charges even when no traffic flows through them. Always delete or deallocate these first if you need to pause the lab rather than complete it in one session.</div>
+        <div class="tip-box">Consider taking a screenshot or exporting the Topology view from Network Watcher before deleting — great for documentation and portfolio proof-of-work.</div>
+      </div>
+    </div>
+
+  </div><!-- end module 6 -->
+
+</div><!-- end labs-container -->
+
+<!-- FOOTER -->
+<footer>
+  <p>Azure Networking Lab · GUI-Only · AZ-700 Aligned · Reference Sources: 
+    <a href="https://github.com/oliverlabs/azure-networking" target="_blank">oliverlabs/azure-networking</a> · 
+    <a href="https://github.com/HoussemDellai/azure-network-course" target="_blank">HoussemDellai/azure-network-course</a> · 
+    <a href="https://schmitt-nieto.com/blog/awesome-azure-local/" target="_blank">schmitt-nieto.com</a>
+  </p>
+  <p style="margin-top:0.4rem; color: #2a3a52;">No scripts. No Terraform. All Portal GUI.</p>
+</footer>
+
+<script>
+function toggleLab(id) {
+  const card = document.getElementById(id);
+  card.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>
